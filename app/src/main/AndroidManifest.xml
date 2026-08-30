@@ -33,6 +33,7 @@
     <uses-feature android:name="android.hardware.microphone" android:required="false"/>
 
     <application
+        android:name=".launcher.LauncherApplication"
         android:appComponentFactory="androidx.core.app.CoreComponentFactory"
         android:banner="@mipmap/ic_launcher"
         android:hardwareAccelerated="true"

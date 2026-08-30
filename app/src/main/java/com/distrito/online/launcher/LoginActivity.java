@@ -31,6 +31,7 @@ public class LoginActivity extends BaseLauncherActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (isFinishing()) return;
         setContentView(R.layout.login_screen);
 
         accountManager = new LinkedAccountManager(this);

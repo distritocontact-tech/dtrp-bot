@@ -26,7 +26,7 @@ public class EntryActivity extends BaseLauncherActivity {
     // TODO: substituir por progresso real de carregamento de arquivos/assets
     // (verificação de integridade, download de atualizações, etc.). Por
     // enquanto a barra apenas anima até 100% dentro desse tempo máximo.
-    private static final long LOADING_DURATION_MS = 25_000;
+    private static final long LOADING_DURATION_MS = 10_000;
 
     private LinkedAccountManager accountManager;
     private ObjectAnimator progressAnimator;
