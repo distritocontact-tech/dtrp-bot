@@ -24,7 +24,6 @@ public class ConnectActivity extends BaseLauncherActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (isFinishing()) return;
         setContentView(R.layout.connect_screen);
 
         accountManager = new LinkedAccountManager(this);

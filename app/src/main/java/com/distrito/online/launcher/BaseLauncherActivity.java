@@ -27,16 +27,6 @@ public abstract class BaseLauncherActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if (!(this instanceof EntryActivity)
-                && LauncherApplication.from(this).consumeShouldRestartFromLoading()) {
-            Intent restart = new Intent(this, EntryActivity.class);
-            restart.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(restart);
-            finish();
-            return;
-        }
-
         applyImmersiveFullScreen();
     }
 
