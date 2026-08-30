@@ -11,8 +11,8 @@ import com.distrito.online.R;
 
 /**
  * Primeira tela que o player vê ao abrir o app: a tela de carregamento
- * (loading_screen.xml). A tela surge com um fade-in leve, espera o
- * carregamento simulado e então vai, também com fade, para:
+ * (loading_screen.xml). Espera o carregamento simulado e então desliza,
+ * com uma transição de slide, para:
  *  - LoginActivity, se for a primeira vez do player ou ele não tiver
  *    conta Google vinculada;
  *  - ConnectActivity diretamente, se a conta já estiver vinculada.
@@ -29,7 +29,6 @@ public class EntryActivity extends BaseLauncherActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.loading_screen);
-        fadeInRoot(R.id.main_layout);
 
         accountManager = new LinkedAccountManager(this);
 

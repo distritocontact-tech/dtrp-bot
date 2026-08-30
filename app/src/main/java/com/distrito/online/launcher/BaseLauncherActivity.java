@@ -1,56 +1,76 @@
 package com.distrito.online.launcher;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.DecelerateInterpolator;
+import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.distrito.online.R;
 
 /**
  * Base para as telas do launcher. Cuida de duas coisas:
- *  - Fazer a tela inteira (o layout raiz) surgir com um fade-in leve
- *    assim que a Activity abre, em vez de simplesmente "estalar" na tela.
- *  - Padronizar a transição animada (fade) ao trocar de tela, tanto ao
- *    entrar na próxima quanto ao sair da atual.
+ *  - Deixar a tela realmente em tela cheia (edge-to-edge), cobrindo
+ *    barra de status E barra de navegação, para não sobrar nenhuma
+ *    faixa branca/preta do sistema nas bordas.
+ *  - Padronizar a transição animada entre telas (slide), trocando de
+ *    Activity para Activity sem duplicar animação de fade.
  */
 public abstract class BaseLauncherActivity extends AppCompatActivity {
-
-    private static final int ROOT_FADE_IN_DURATION_MS = 500;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        applyImmersiveFullScreen();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            applyImmersiveFullScreen();
+        }
     }
 
     /**
-     * Chame depois de setContentView(), passando o id do layout raiz
-     * (normalmente main_layout) para animar a entrada de toda a tela.
+     * Faz o conteúdo ocupar a tela inteira (edge-to-edge) e esconde tanto
+     * a barra de status quanto a barra de navegação, em modo imersivo
+     * "sticky" (o usuário consegue puxar as barras de volta com um swipe,
+     * mas elas somem de novo sozinhas). É isso que elimina a faixa
+     * branca/cinza que sobrava do lado do app.
      */
-    protected void fadeInRoot(int rootViewId) {
-        View root = findViewById(rootViewId);
-        if (root == null) return;
+    private void applyImmersiveFullScreen() {
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
-        root.setAlpha(0f);
-        AlphaAnimation anim = new AlphaAnimation(0f, 1f);
-        anim.setDuration(ROOT_FADE_IN_DURATION_MS);
-        anim.setInterpolator(new DecelerateInterpolator());
-        anim.setFillAfter(true);
-        root.startAnimation(anim);
-        root.setAlpha(1f);
+        View decorView = getWindow().getDecorView();
+        WindowInsetsControllerCompat controller =
+                new WindowInsetsControllerCompat(getWindow(), decorView);
+        controller.setSystemBarsBehavior(
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+        controller.hide(WindowInsetsCompat.Type.systemBars());
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            getWindow().getAttributes().layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+        }
     }
 
     /**
-     * Abre a próxima Activity com uma transição de fade suave e fecha
-     * a atual, também com fade. Substitui o startActivity()+finish() cru.
+     * Abre a próxima Activity com uma transição de slide (a nova tela
+     * entra deslizando da direita, a atual desliza levemente pra
+     * esquerda) e fecha a atual. Substitui o antigo fade duplo — que
+     * rodava o fade da Activity ao mesmo tempo que um fade manual no
+     * layout raiz e causava a sobreposição/"fantasma" das telas.
      */
     protected void navigateWithFade(Intent intent) {
         startActivity(intent);
         finish();
-        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
     }
 }

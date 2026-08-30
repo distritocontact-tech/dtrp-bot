@@ -47,7 +47,7 @@
                         android:paddingTop="6dp"
                         android:paddingEnd="12dp"
                         android:paddingBottom="6dp"
-                        android:text="NEWS RP"
+                        android:text="DISTRITO ROLEPLAY"
                         android:textAllCaps="true"
                         android:textColor="@android:color/white"
                         android:textSize="8.5sp" />

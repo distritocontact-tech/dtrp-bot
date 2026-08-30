@@ -32,7 +32,6 @@ public class LoginActivity extends BaseLauncherActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_screen);
-        fadeInRoot(R.id.main_layout);
 
         accountManager = new LinkedAccountManager(this);
 
