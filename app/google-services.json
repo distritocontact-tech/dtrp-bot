@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1011962422766",
+    "project_id": "distrito-online",
+    "storage_bucket": "distrito-online.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1011962422766:android:3af41162422a3b4b409aff",
+        "android_client_info": {
+          "package_name": "com.distrito.online"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1011962422766-dp7pdhs9kht83iou58lpfpv9ut5ff0ep.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.distrito.online",
+            "certificate_hash": "defac20e4d648ed4cd780104b4be631b54ac859a"
+          }
+        },
+        {
+          "client_id": "1011962422766-p14bn9rdrtbof6pup7q3r32qrf5khsvv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCIDSfMw7LXou7Cmnfj1gZ-TJBgovsxVIs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1011962422766-p14bn9rdrtbof6pup7q3r32qrf5khsvv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
