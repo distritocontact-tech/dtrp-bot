@@ -73,4 +73,15 @@ public abstract class BaseLauncherActivity extends AppCompatActivity {
         finish();
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
     }
+
+    /**
+     * Igual ao navigateWithFade, mas com uma transição mais leve/sutil
+     * (fade + leve zoom, sem slide) — usada especificamente ao entrar na
+     * tela de "Connect with Google".
+     */
+    protected void navigateWithLightFade(Intent intent) {
+        startActivity(intent);
+        finish();
+        overridePendingTransition(R.anim.light_fade_in, R.anim.light_fade_out);
+    }
 }
