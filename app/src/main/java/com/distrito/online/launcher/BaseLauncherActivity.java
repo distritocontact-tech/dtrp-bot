@@ -115,10 +115,15 @@ public abstract class BaseLauncherActivity extends AppCompatActivity {
      */
     protected void playEntryAnimationIfPending(View rootView) {
         int animType = getIntent().getIntExtra(EXTRA_ENTRY_ANIM, ENTRY_ANIM_SLIDE);
+        // Estado inicial aplicado JÁ, de forma síncrona — sem isso a view
+        // renderia um frame inteiro em opacidade máxima antes do primeiro
+        // callback do Choreographer, o que também causa um "pisco".
+        rootView.setAlpha(0f);
         if (animType == ENTRY_ANIM_LIGHT_FADE) {
             // ~400ms, igual ao crossfade do vídeo de referência.
             ManualScreenAnimator.lightFadeIn(rootView, 400);
         } else {
+            rootView.setTranslationX(rootView.getWidth() > 0 ? rootView.getWidth() : 1080f);
             ManualScreenAnimator.slideInFromRight(rootView, 260);
         }
     }

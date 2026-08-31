@@ -10,6 +10,16 @@
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+        <!-- Evita a "piscada branca" ao trocar de Activity: sem isso, o
+             fundo padrão claro do AppCompat.Light aparece por um instante
+             antes do conteúdo da tela (que é sempre escuro) ser desenhado. -->
+        <item name="android:windowBackground">@android:color/black</item>
+        <!-- Também evita o flash: desliga a janela de transição padrão do
+             Android nessa troca, já que quem cuida da animação agora é o
+             ManualScreenAnimator (ver BaseLauncherActivity). -->
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowDisablePreview">true</item>
     </style>
 
     <style name="CustomDialogTheme" parent="Theme.AppCompat.DayNight.Dialog.Alert">
