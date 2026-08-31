@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <!-- Background art (same hero image as connect_screen, so the install
+         screen feels like a continuation instead of a hard cut) -->
+    <ImageView
+        android:id="@+id/bg_image"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bg_connect"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Darkening scrim so the wordmark/progress UI stays legible over
+         a background that isn't purpose-built for this screen -->
+    <View
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#4D000000"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- "Distrito" wordmark, centered -->
+    <TextView
+        android:id="@+id/txt_wordmark"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Distrito"
+        android:textColor="#FFFFFF"
+        android:textSize="72sp"
+        android:fontFamily="@font/montserrat_alternates_bold"
+        android:textStyle="italic"
+        android:shadowColor="#B3000000"
+        android:shadowRadius="10"
+        android:shadowDx="0"
+        android:shadowDy="2"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/txt_status_label"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_bias="0.42" />
+
+    <!-- "Atualizando arquivos" (left) -->
+    <TextView
+        android:id="@+id/txt_status_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="28dp"
+        android:layout_marginBottom="14dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="Atualizando arquivos"
+        android:textColor="#FFFFFF"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        android:shadowColor="#B3000000"
+        android:shadowRadius="6"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        app:layout_constraintBottom_toTopOf="@id/progress_bar"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- "Baixando: distrito-data.partXX.bin" (right) -->
+    <TextView
+        android:id="@+id/txt_current_file"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="28dp"
+        android:layout_marginBottom="14dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="Baixando: distrito-data.part00.bin"
+        android:textColor="#2E9BF6"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:shadowColor="#B3000000"
+        android:shadowRadius="6"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        app:layout_constraintBottom_toTopOf="@id/progress_bar"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Progress bar -->
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="0dp"
+        android:layout_height="6dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginEnd="28dp"
+        android:layout_marginBottom="16dp"
+        android:max="10000"
+        android:progress="0"
+        android:progressDrawable="@drawable/bg_progress_bar"
+        app:layout_constraintBottom_toTopOf="@id/txt_warning"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Warning icon + "não feche o app" hint (left) -->
+    <LinearLayout
+        android:id="@+id/txt_warning"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="28dp"
+        android:layout_marginBottom="28dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@drawable/ic_baseline_notifications_24"
+            app:tint="#2E9BF6" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Evite sair do aplicativo, pois isso pode interromper o download."
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:shadowColor="#B3000000"
+            android:shadowRadius="4"
+            android:shadowDx="0"
+            android:shadowDy="1" />
+    </LinearLayout>
+
+    <!-- "X MB de Y MB" (right) -->
+    <TextView
+        android:id="@+id/txt_bytes_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="28dp"
+        android:layout_marginBottom="28dp"
+        android:text="0 MB de 0 MB"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:shadowColor="#B3000000"
+        android:shadowRadius="4"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        app:layout_constraintBottom_toBottomOf="@id/txt_warning"
+        app:layout_constraintTop_toTopOf="@id/txt_warning"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

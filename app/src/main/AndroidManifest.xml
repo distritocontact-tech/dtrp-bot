@@ -49,7 +49,7 @@
         <!-- Atividades -->
         <activity
             android:name=".launcher.EntryActivity"
-            android:screenOrientation="landscape"
+            android:screenOrientation="sensorLandscape"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|uiMode|keyboardHidden"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"
             android:exported="true">
@@ -61,21 +61,28 @@
 
         <activity
             android:name=".launcher.LoginActivity"
-            android:screenOrientation="landscape"
+            android:screenOrientation="sensorLandscape"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|uiMode|keyboardHidden"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"
             android:exported="false" />
 
         <activity
             android:name=".launcher.ConnectActivity"
-            android:screenOrientation="landscape"
+            android:screenOrientation="sensorLandscape"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|uiMode|keyboardHidden"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"
+            android:exported="false" />
+
+        <activity
+            android:name=".launcher.InstallActivity"
+            android:screenOrientation="sensorLandscape"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|uiMode|keyboardHidden"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"
             android:exported="false" />
 
         <activity
             android:name=".main.SAMP"
-            android:screenOrientation="landscape"
+            android:screenOrientation="sensorLandscape"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"
             android:launchMode="singleTask"
@@ -84,19 +91,22 @@
 
         <activity
             android:name=".launcher.MainActivity"
-            android:screenOrientation="landscape"
+            android:screenOrientation="sensorLandscape"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|uiMode|keyboardHidden"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"
             android:windowSoftInputMode="stateHidden|adjustPan"/>
 
         <activity
             android:name=".launcher.SplashActivity"
-            android:screenOrientation="landscape"
+            android:screenOrientation="sensorLandscape"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|uiMode|keyboardHidden"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"
             android:exported="true"/>
 
         <activity
             android:name=".launcher.UpdateActivity"
-            android:screenOrientation="landscape"
+            android:screenOrientation="sensorLandscape"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|uiMode|keyboardHidden"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"/>
 
         <!-- ServiÃ§os -->

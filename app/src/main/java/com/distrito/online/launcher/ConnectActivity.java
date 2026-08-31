@@ -33,11 +33,11 @@ public class ConnectActivity extends BaseLauncherActivity {
                 .build();
         googleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        findViewById(R.id.btn_switch_account).setOnClickListener(v -> switchAccount());
+        findViewById(R.id.btn_switch_account).setOnClickListener(v ->
+                playTapFeedback(v, this::switchAccount));
 
-        findViewById(R.id.btn_atualizar).setOnClickListener(v -> {
-            // TODO: disparar a checagem/baixa de atualização do servidor.
-        });
+        findViewById(R.id.btn_atualizar).setOnClickListener(v ->
+                playTapFeedback(v, () -> navigateWithFade(new Intent(this, InstallActivity.class))));
 
         // Exemplo de como atualizar os textos dinâmicos vindos do servidor:
         // TextView playersOnline = findViewById(R.id.txt_players_online);

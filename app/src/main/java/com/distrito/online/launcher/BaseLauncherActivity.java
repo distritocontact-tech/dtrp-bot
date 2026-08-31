@@ -5,6 +5,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.OvershootInterpolator;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -92,5 +93,28 @@ public abstract class BaseLauncherActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
         overridePendingTransition(R.anim.light_fade_in, R.anim.light_fade_out);
+    }
+
+    /**
+     * Dá um "tap feedback" (encolhe levemente e volta ao tamanho normal
+     * com um pequeno overshoot) num botão/pill antes de rodar {@code onFinished}.
+     * Usado nos botões que abrem uma nova tela (ex: "Baixar"), pra sempre
+     * haver alguma animação visível entre o toque e a troca de Activity —
+     * mesmo em telas onde a transição de entrada é rápida.
+     */
+    protected void playTapFeedback(View target, Runnable onFinished) {
+        target.animate().cancel();
+        target.animate()
+                .scaleX(0.92f)
+                .scaleY(0.92f)
+                .setDuration(90)
+                .withEndAction(() -> target.animate()
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(160)
+                        .setInterpolator(new OvershootInterpolator(3f))
+                        .withEndAction(onFinished)
+                        .start())
+                .start();
     }
 }
