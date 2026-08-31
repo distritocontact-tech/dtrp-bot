@@ -38,6 +38,15 @@ public abstract class BaseLauncherActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        // Transição de volta (slide no sentido oposto ao de entrada), pra
+        // cobrir também a navegação pelo botão/gesto de voltar do sistema
+        // — que, sem isso, usa a transição padrão (sem animação) do Android.
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+    }
+
     /**
      * Faz o conteúdo ocupar a tela inteira (edge-to-edge) e esconde tanto
      * a barra de status quanto a barra de navegação, em modo imersivo

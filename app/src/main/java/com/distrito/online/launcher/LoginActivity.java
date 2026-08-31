@@ -2,6 +2,7 @@ package com.distrito.online.launcher;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -23,6 +24,7 @@ import com.distrito.online.R;
  */
 public class LoginActivity extends BaseLauncherActivity {
 
+    private static final String TAG = "DTRP-GoogleSignIn";
     private static final int RC_SIGN_IN = 9001;
 
     private GoogleSignInClient googleSignInClient;
@@ -53,7 +55,7 @@ public class LoginActivity extends BaseLauncherActivity {
         });
 
         findViewById(R.id.btn_language).setOnClickListener(v ->
-                Toast.makeText(this, "Seletor de idioma ainda não implementado", Toast.LENGTH_SHORT).show());
+                Toast.makeText(this, "Em desenvolvimento", Toast.LENGTH_SHORT).show());
     }
 
     @Override
@@ -71,7 +73,19 @@ public class LoginActivity extends BaseLauncherActivity {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
             onGoogleLoginSuccess(account);
         } catch (ApiException e) {
-            Toast.makeText(this, "Não foi possível conectar com o Google. Tente novamente.", Toast.LENGTH_SHORT).show();
+            // Código 10 (DEVELOPER_ERROR) quase sempre significa que o SHA-1
+            // usado pra assinar esse build não está cadastrado no projeto do
+            // Firebase/Google Cloud pra este app — veja o build.gradle: não
+            // há signingConfig definido, então cada máquina/CI assina com um
+            // keystore de debug diferente. Rode "gradlew signingReport" pra
+            // pegar o SHA-1 atual e cadastre em
+            // https://console.firebase.google.com > Configurações do projeto
+            // > seu app Android > Adicionar impressão digital, depois baixe
+            // o google-services.json atualizado.
+            Log.e(TAG, "Falha no login Google — código " + e.getStatusCode() + ": " + e.getMessage(), e);
+            Toast.makeText(this,
+                    "Não foi possível conectar com o Google (erro " + e.getStatusCode() + "). Tente novamente.",
+                    Toast.LENGTH_LONG).show();
         }
     }
 

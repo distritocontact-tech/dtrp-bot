@@ -14,8 +14,10 @@ import com.distrito.online.R;
 /**
  * Primeira tela que o player vê ao abrir o app: a tela de carregamento
  * (loading_screen.xml). A barra de progresso anda de 0 a 100 ao longo de
- * LOADING_DURATION_MS e, assim que termina, o app desliza, com uma
- * transição, para:
+ * LOADING_DURATION_MS, com uma pausa proposital simulando um
+ * carregamento real (trava em STALL_START_MS e volta a andar em
+ * STALL_END_MS), e assim que termina, o app desliza, com uma transição,
+ * para:
  *  - LoginActivity, se for a primeira vez do player ou ele não tiver
  *    conta Google vinculada;
  *  - ConnectActivity diretamente, se a conta já estiver vinculada.
@@ -35,7 +37,10 @@ public class EntryActivity extends BaseLauncherActivity {
     // (verificação de integridade, download de atualizações, etc.). Por
     // enquanto a barra apenas avança até 100% dentro desse tempo máximo.
     private static final long LOADING_DURATION_MS = 10_000;
-    private static final long TICK_MS = 50;
+    private static final long STALL_START_MS = 5_000;
+    private static final long STALL_END_MS = 7_000;
+    private static final long STALL_DURATION_MS = STALL_END_MS - STALL_START_MS;
+    private static final long TICK_MS = 16; // ~60fps, pra barra andar suave sem travar
 
     private LinkedAccountManager accountManager;
     private ProgressBar progressBar;
@@ -49,10 +54,21 @@ public class EntryActivity extends BaseLauncherActivity {
             if (loadingFinished) return;
 
             long elapsed = SystemClock.elapsedRealtime() - startElapsedMs;
-            int progress = (int) Math.min(100, (elapsed * 100) / LOADING_DURATION_MS);
+
+            long progressElapsed;
+            if (elapsed < STALL_START_MS) {
+                progressElapsed = elapsed;
+            } else if (elapsed < STALL_END_MS) {
+                // "trava" aqui — carregamento pausado simulando trabalho real
+                progressElapsed = STALL_START_MS;
+            } else {
+                progressElapsed = elapsed - STALL_DURATION_MS;
+            }
+
+            int progress = (int) Math.min(100, (progressElapsed * 100) / LOADING_DURATION_MS);
             progressBar.setProgress(progress);
 
-            if (elapsed >= LOADING_DURATION_MS) {
+            if (progressElapsed >= LOADING_DURATION_MS) {
                 loadingFinished = true;
                 goToNextScreen();
             } else {
