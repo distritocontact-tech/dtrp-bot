@@ -30,20 +30,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- "Distrito" wordmark, centered -->
-    <TextView
+    <!-- "Distrito" wordmark, centered (logo image, transparent background) -->
+    <ImageView
         android:id="@+id/txt_wordmark"
-        android:layout_width="wrap_content"
+        android:layout_width="260dp"
         android:layout_height="wrap_content"
-        android:text="Distrito"
-        android:textColor="#FFFFFF"
-        android:textSize="72sp"
-        android:fontFamily="@font/montserrat_alternates_bold"
-        android:textStyle="italic"
-        android:shadowColor="#B3000000"
-        android:shadowRadius="10"
-        android:shadowDx="0"
-        android:shadowDy="2"
+        android:adjustViewBounds="true"
+        android:src="@drawable/distrito_wordmark"
+        android:contentDescription="Distrito"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/txt_status_label"
         app:layout_constraintStart_toStartOf="parent"
@@ -58,7 +52,7 @@
         android:layout_marginStart="28dp"
         android:layout_marginBottom="14dp"
         android:fontFamily="sans-serif-medium"
-        android:text="Atualizando arquivos"
+        android:text="Baixando arquivos"
         android:textColor="#FFFFFF"
         android:textSize="17sp"
         android:textStyle="bold"
@@ -93,7 +87,7 @@
         android:id="@+id/progress_bar"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="0dp"
-        android:layout_height="6dp"
+        android:layout_height="14dp"
         android:layout_marginStart="28dp"
         android:layout_marginEnd="28dp"
         android:layout_marginBottom="16dp"

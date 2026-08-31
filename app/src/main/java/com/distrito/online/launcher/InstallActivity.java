@@ -19,6 +19,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -61,6 +63,16 @@ public class InstallActivity extends BaseLauncherActivity {
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private volatile boolean cancelled = false;
 
+    /**
+     * Se true, essa execução é um REPARO: não apaga a pasta inteira, só
+     * regrava os arquivos que o FileIntegrityManager marcou como
+     * faltando/adulterados. Disparado quando ConnectActivity detecta
+     * arquivos fora do manifesto assinado.
+     */
+    public static final String EXTRA_REPAIR_MODE = "repair_mode";
+    private boolean repairMode = false;
+    private FileIntegrityManager integrityManager;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,10 +84,13 @@ public class InstallActivity extends BaseLauncherActivity {
         txtBytesProgress = findViewById(R.id.txt_bytes_progress);
         progressBar.setMax(10000);
 
+        repairMode = getIntent().getBooleanExtra(EXTRA_REPAIR_MODE, false);
+        integrityManager = new FileIntegrityManager(this, new File(getFilesDir(), INSTALL_FOLDER_NAME));
+
         SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
         String state = prefs.getString(KEY_STATE, null);
 
-        if (STATE_IN_PROGRESS.equals(state)) {
+        if (!repairMode && STATE_IN_PROGRESS.equals(state)) {
             // A última tentativa foi interrompida no meio: descarta tudo
             // (partes baixadas e qualquer coisa já extraída) e recomeça.
             wipeEverything();
@@ -109,7 +124,8 @@ public class InstallActivity extends BaseLauncherActivity {
                 downloadFile(PART_01_URL, part01, "distrito-data.part01.bin", Math.max(0, total00), grandTotal);
                 if (cancelled) return;
 
-                extractParts(part00, part01);
+                List<String> onlyThese = repairMode ? integrityManager.getPendingRepair() : null;
+                extractParts(part00, part01, onlyThese);
                 if (cancelled) return;
 
                 // tudo certo: limpa as partes baixadas (não precisamos mais
@@ -118,10 +134,26 @@ public class InstallActivity extends BaseLauncherActivity {
                 getSharedPreferences(PREFS, MODE_PRIVATE)
                         .edit().putString(KEY_STATE, STATE_COMPLETE).apply();
 
+                File installDir = new File(getFilesDir(), INSTALL_FOLDER_NAME);
+                if (repairMode && onlyThese != null && !onlyThese.isEmpty()) {
+                    integrityManager.rebuildManifestForFiles(onlyThese);
+                    integrityManager.clearPendingRepair();
+                } else {
+                    integrityManager.rebuildFullManifest();
+                }
+                integrityManager.lockDownPermissions(installDir);
+
                 mainHandler.post(this::goToGame);
             } catch (Exception e) {
-                Log.e(TAG, "Falha na instalação, revertendo tudo", e);
-                wipeEverything();
+                Log.e(TAG, "Falha na instalação/reparo", e);
+                if (repairMode) {
+                    // não apaga a pasta inteira por causa de uma falha de
+                    // reparo: os arquivos sinalizados continuam pendentes,
+                    // o player só tenta de novo depois.
+                    getSharedPreferences(PREFS, MODE_PRIVATE).edit().remove(KEY_STATE).apply();
+                } else {
+                    wipeEverything();
+                }
                 mainHandler.post(() -> {
                     if (!isFinishing()) {
                         // Instalação falhou: volta pra tela anterior pra o
@@ -207,9 +239,16 @@ public class InstallActivity extends BaseLauncherActivity {
     /**
      * Junta part00 + part01 (nessa ordem) num único arquivo e extrai o
      * conteúdo (assumindo um .zip) para a pasta com.distrito.online.
+     *
+     * Se onlyRelativePaths for null: instalação completa (limpa a pasta
+     * inteira antes, como sempre foi). Se for uma lista não-nula: modo
+     * REPARO — a pasta NÃO é apagada, e só as entradas do zip cujo nome
+     * relativo está nessa lista são regravadas; todo o resto do pacote
+     * baixado é ignorado e os demais arquivos já instalados ficam intactos.
      */
-    private void extractParts(File part00, File part01) throws IOException {
-        mainHandler.post(() -> txtCurrentFile.setText("Extraindo arquivos..."));
+    private void extractParts(File part00, File part01, List<String> onlyRelativePaths) throws IOException {
+        mainHandler.post(() -> txtCurrentFile.setText(
+                onlyRelativePaths == null ? "Extraindo arquivos..." : "Reparando arquivos..."));
 
         File combined = new File(part00.getParentFile(), "distrito-data.combined.bin");
         try (OutputStream out = new FileOutputStream(combined)) {
@@ -218,30 +257,52 @@ public class InstallActivity extends BaseLauncherActivity {
         }
 
         File installDir = new File(getFilesDir(), INSTALL_FOLDER_NAME);
-        deleteRecursive(installDir);
-        if (!installDir.mkdirs()) {
-            throw new IOException("Não foi possível criar a pasta de instalação");
+        boolean repairing = onlyRelativePaths != null;
+        if (!repairing) {
+            deleteRecursive(installDir);
+            if (!installDir.mkdirs()) {
+                throw new IOException("Não foi possível criar a pasta de instalação");
+            }
         }
+
+        List<String> stillMissing = repairing ? new ArrayList<>(onlyRelativePaths) : null;
 
         try (ZipInputStream zip = new ZipInputStream(new java.io.FileInputStream(combined))) {
             ZipEntry entry;
             byte[] buffer = new byte[64 * 1024];
             while (!cancelled && (entry = zip.getNextEntry()) != null) {
-                File outFile = new File(installDir, entry.getName());
+                String name = entry.getName();
+
+                if (repairing && !onlyRelativePaths.contains(name)) {
+                    // não é um dos arquivos sinalizados: pula, não mexe
+                    // no que já está instalado.
+                    zip.closeEntry();
+                    continue;
+                }
+
+                File outFile = new File(installDir, name);
 
                 // proteção básica contra "zip slip" (entradas tentando
                 // escrever fora da pasta de instalação)
                 if (!outFile.getCanonicalPath().startsWith(installDir.getCanonicalPath() + File.separator)) {
-                    throw new IOException("Entrada de arquivo inválida no pacote: " + entry.getName());
+                    throw new IOException("Entrada de arquivo inválida no pacote: " + name);
                 }
 
                 if (entry.isDirectory()) {
                     outFile.mkdirs();
+                    zip.closeEntry();
                     continue;
                 }
 
                 File parent = outFile.getParentFile();
                 if (parent != null && !parent.exists()) parent.mkdirs();
+
+                // se o arquivo antigo estava travado como somente-leitura,
+                // destrava só pra sobrescrever com a versão limpa.
+                if (outFile.exists()) {
+                    //noinspection ResultOfMethodCallIgnored
+                    outFile.setWritable(true, false);
+                }
 
                 try (OutputStream fos = new FileOutputStream(outFile)) {
                     int read;
@@ -250,11 +311,21 @@ public class InstallActivity extends BaseLauncherActivity {
                     }
                 }
                 zip.closeEntry();
+
+                if (repairing) stillMissing.remove(name);
             }
         }
 
         //noinspection ResultOfMethodCallIgnored
         combined.delete();
+
+        if (repairing && !stillMissing.isEmpty()) {
+            // algum caminho sinalizado não existia mais no pacote atual do
+            // servidor (ex: arquivo renomeado numa atualização) — não trava
+            // o reparo por isso, só loga; a próxima verificação completa
+            // vai reavaliar o manifesto do zero se necessário.
+            Log.w(TAG, "Reparo: entradas não encontradas no pacote atual: " + stillMissing);
+        }
     }
 
     private void copyStream(File src, OutputStream out) throws IOException {
