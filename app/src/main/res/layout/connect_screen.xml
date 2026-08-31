@@ -52,24 +52,6 @@
             android:fontFamily="sans-serif-condensed" />
     </LinearLayout>
 
-    <!-- "Instalação necessária" label, sits right above the download button -->
-    <TextView
-        android:id="@+id/txt_install_required"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:text="Instalação necessária"
-        android:textColor="#FFC94D"
-        android:textSize="13sp"
-        android:textStyle="bold"
-        android:shadowColor="#99000000"
-        android:shadowRadius="4"
-        android:shadowDx="0"
-        android:shadowDy="1"
-        app:layout_constraintBottom_toTopOf="@id/bottom_bar"
-        app:layout_constraintEnd_toEndOf="@id/btn_atualizar"
-        app:layout_constraintStart_toStartOf="@id/btn_atualizar" />
-
     <!-- Bottom bar: socials (left) + server box + atualizar button (right) -->
     <LinearLayout
         android:id="@+id/bottom_bar"
@@ -78,7 +60,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="28dp"
-        android:gravity="center_vertical"
+        android:gravity="bottom"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -89,6 +71,7 @@
             android:id="@+id/btn_discord"
             android:layout_width="52dp"
             android:layout_height="52dp"
+            android:layout_marginBottom="2dp"
             android:background="@drawable/bg_circle_dark"
             android:padding="14dp"
             android:src="@drawable/ic_discord"
@@ -96,13 +79,14 @@
             android:focusable="true" />
 
         <ImageView
-            android:id="@+id/btn_instagram"
+            android:id="@+id/btn_tiktok"
             android:layout_width="52dp"
             android:layout_height="52dp"
             android:layout_marginStart="12dp"
+            android:layout_marginBottom="2dp"
             android:background="@drawable/bg_circle_dark"
             android:padding="14dp"
-            android:src="@drawable/ic_instagram"
+            android:src="@drawable/ic_tiktok"
             android:clickable="true"
             android:focusable="true" />
 
@@ -111,6 +95,7 @@
             android:layout_width="52dp"
             android:layout_height="52dp"
             android:layout_marginStart="12dp"
+            android:layout_marginBottom="2dp"
             android:background="@drawable/bg_circle_dark"
             android:padding="14dp"
             android:src="@drawable/ic_youtube"
@@ -123,11 +108,12 @@
             android:layout_height="1dp"
             android:layout_weight="1" />
 
-        <!-- Server info box -->
+        <!-- Server info box: name (top) + real player count (bottom) -->
         <LinearLayout
             android:id="@+id/panel_server"
             android:layout_width="wrap_content"
             android:layout_height="56dp"
+            android:layout_marginBottom="2dp"
             android:background="@drawable/bg_pill_dark"
             android:gravity="center_vertical"
             android:orientation="horizontal"
@@ -142,13 +128,17 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/txt_server_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="SERVIDOR"
+                    android:maxWidth="160dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="Consultando servidor..."
                     android:textColor="#FFFFFF"
                     android:textSize="11sp"
                     android:textStyle="bold"
-                    android:letterSpacing="0.03" />
+                    android:letterSpacing="0.02" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -182,35 +172,61 @@
                 app:tint="#2E9BF6" />
         </LinearLayout>
 
-        <!-- Atualizar button -->
+        <!-- "Instalação necessária" + Baixar button, stacked so the label
+             always sits directly above the button regardless of screen
+             width (a ConstraintLayout constraint pointing at btn_atualizar
+             wouldn't work reliably since the button lives inside this
+             LinearLayout, not as a direct child of the root). -->
         <LinearLayout
-            android:id="@+id/btn_atualizar"
             android:layout_width="wrap_content"
-            android:layout_height="56dp"
+            android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:background="@drawable/bg_button_blue"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:paddingStart="24dp"
-            android:paddingEnd="28dp"
-            android:clickable="true"
-            android:focusable="true">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@drawable/ic_refresh" />
+            android:orientation="vertical"
+            android:gravity="end">
 
             <TextView
-                android:id="@+id/txt_atualizar"
+                android:id="@+id/txt_install_required"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:text="BAIXAR"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
+                android:layout_marginBottom="8dp"
+                android:text="Instalação necessária"
+                android:textColor="#FFC94D"
+                android:textSize="13sp"
                 android:textStyle="bold"
-                android:letterSpacing="0.02" />
+                android:shadowColor="#99000000"
+                android:shadowRadius="4"
+                android:shadowDx="0"
+                android:shadowDy="1" />
+
+            <!-- Atualizar/Baixar button -->
+            <LinearLayout
+                android:id="@+id/btn_atualizar"
+                android:layout_width="wrap_content"
+                android:layout_height="56dp"
+                android:background="@drawable/bg_button_blue"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingStart="24dp"
+                android:paddingEnd="28dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_refresh" />
+
+                <TextView
+                    android:id="@+id/txt_atualizar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:text="BAIXAR"
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.02" />
+            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>
