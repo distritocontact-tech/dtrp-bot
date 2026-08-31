@@ -3,6 +3,7 @@ package com.distrito.online.launcher;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -10,7 +11,12 @@ import androidx.annotation.Nullable;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.distrito.online.R;
+import com.distrito.online.launcher.admin.AccountDirectory;
+import com.distrito.online.launcher.admin.AdminActivity;
+import com.distrito.online.launcher.admin.AdminConfig;
 
 import java.io.File;
 import java.util.List;
@@ -38,6 +44,11 @@ public class ConnectActivity extends BaseLauncherActivity {
     private TextView txtServerName;
     private TextView txtServerSlots;
     private FileIntegrityManager integrityManager;
+    private AppUpdateManager appUpdateManager;
+    private boolean apkUpdateDialogShown = false;
+
+    private AccountDirectory accountDirectory;
+    private android.app.AlertDialog entryClosedDialog;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -59,6 +70,8 @@ public class ConnectActivity extends BaseLauncherActivity {
                 playTapFeedback(v, this::switchAccount));
 
         integrityManager = new FileIntegrityManager(this, new File(getFilesDir(), INSTALL_FOLDER_NAME));
+        appUpdateManager = new AppUpdateManager(this);
+        accountDirectory = new AccountDirectory();
 
         findViewById(R.id.btn_atualizar).setOnClickListener(v ->
                 playTapFeedback(v, this::onUpdateOrRepairClicked));
@@ -67,8 +80,22 @@ public class ConnectActivity extends BaseLauncherActivity {
         findViewById(R.id.btn_tiktok).setOnClickListener(v -> playTapFeedback(v, () -> openUrl(TIKTOK_URL)));
         findViewById(R.id.btn_youtube).setOnClickListener(v -> playTapFeedback(v, () -> openUrl(YOUTUBE_URL)));
 
+        setupAdminButton();
+
         refreshServerStatus();
         checkFileIntegrity();
+        checkForAppUpdate();
+    }
+
+    /** Mostra o pill "Painel Admin" só se a conta logada for a do admin. */
+    private void setupAdminButton() {
+        View adminBtn = findViewById(R.id.btn_admin_panel);
+        boolean isAdmin = AdminConfig.isAdminEmail(accountManager.getEmail());
+        adminBtn.setVisibility(isAdmin ? View.VISIBLE : View.GONE);
+        if (isAdmin) {
+            adminBtn.setOnClickListener(v -> playTapFeedback(v, () ->
+                    startActivity(new Intent(this, AdminActivity.class))));
+        }
     }
 
     @Override
@@ -77,6 +104,113 @@ public class ConnectActivity extends BaseLauncherActivity {
         // Reavalia sempre que a tela volta a ficar visível (ex: player
         // saiu, mexeu em algo com um gerenciador de arquivos, voltou).
         if (integrityManager != null) checkFileIntegrity();
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) accountDirectory.startHeartbeat(user.getUid());
+
+        checkEntryGate();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        accountDirectory.stopHeartbeat();
+    }
+
+    /**
+     * Checa se o admin fechou a entrada pelo painel (apenas o APK é
+     * afetado) e se a conta/IP não foram banidos depois do login. Se
+     * bloqueado, cobre a tela com um diálogo não-cancelável — o admin
+     * (logado com a conta AdminConfig.ADMIN_EMAIL) nunca é bloqueado por
+     * esse gate, pra sempre conseguir reabrir a entrada pelo painel.
+     */
+    private void checkEntryGate() {
+        if (AdminConfig.isAdminEmail(accountManager.getEmail())) return;
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        accountDirectory.checkAccess(user.getUid(), null, (allowed, banReason) -> runOnUiThread(() -> {
+            if (!allowed) {
+                showBlockingDialog(banReason != null ? banReason : "Sua conta foi banida.");
+                return;
+            }
+            accountDirectory.getEntryState((closed, message) -> runOnUiThread(() -> {
+                if (closed) {
+                    showBlockingDialog(message != null && !message.trim().isEmpty()
+                            ? message : "A entrada no servidor está temporariamente fechada. Volte mais tarde.");
+                }
+            }));
+        }));
+    }
+
+    private void showBlockingDialog(String message) {
+        if (entryClosedDialog != null && entryClosedDialog.isShowing()) return;
+        entryClosedDialog = new android.app.AlertDialog.Builder(this)
+                .setTitle("Acesso indisponível")
+                .setMessage(message)
+                .setCancelable(false)
+                .setPositiveButton("Sair", (dialog, which) -> finishAffinity())
+                .show();
+    }
+
+    /**
+     * Checa o manifest.json (publicado pelo bot a cada release do APK) e,
+     * se existir uma versão mais nova, mostra o diálogo de atualização
+     * com botão de baixar + instalar direto. Se o manifest não estiver
+     * acessível, não faz nada — o player continua jogando normalmente.
+     */
+    private void checkForAppUpdate() {
+        appUpdateManager.checkForUpdate((updateAvailable, apkUrl) -> {
+            if (isFinishing() || isDestroyed() || !updateAvailable) return;
+            runOnUiThread(() -> showApkUpdateDialog(apkUrl));
+        });
+    }
+
+    /** Mostra o popup "Atualizacao de dados encontrada" reaproveitado pra avisar de um APK novo. */
+    private void showApkUpdateDialog(String apkUrl) {
+        if (apkUpdateDialogShown || isFinishing() || isDestroyed()) return;
+        apkUpdateDialogShown = true;
+
+        View content = getLayoutInflater().inflate(R.layout.dialog_update_prompt, null);
+        TextView title = content.findViewById(R.id.update_prompt_title);
+        TextView body = content.findViewById(R.id.update_prompt_body);
+        title.setText("Nova versão do launcher disponível");
+        body.setText("Uma atualização do aplicativo foi lançada. Baixe agora para continuar jogando sem problemas.");
+
+        android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(this)
+                .setView(content)
+                .setCancelable(true)
+                .create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
+
+        content.findViewById(R.id.update_prompt_secondary).setOnClickListener(v -> dialog.dismiss());
+        content.findViewById(R.id.update_prompt_primary).setOnClickListener(v -> {
+            TextView primary = content.findViewById(R.id.update_prompt_primary);
+            primary.setText("Baixando...");
+            primary.setEnabled(false);
+            appUpdateManager.downloadApk(apkUrl, new AppUpdateManager.DownloadCallback() {
+                @Override public void onProgress(int percent) {
+                    runOnUiThread(() -> primary.setText("Baixando " + percent + "%"));
+                }
+                @Override public void onSuccess(File apkFile) {
+                    runOnUiThread(() -> {
+                        dialog.dismiss();
+                        appUpdateManager.promptInstall(apkFile);
+                    });
+                }
+                @Override public void onError(Exception e) {
+                    runOnUiThread(() -> {
+                        primary.setText("Tentar de novo");
+                        primary.setEnabled(true);
+                    });
+                }
+            });
+        });
+
+        dialog.show();
     }
 
     /**

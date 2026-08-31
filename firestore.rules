@@ -1,0 +1,80 @@
+rules_version = '2';
+
+// ---------------------------------------------------------------------
+// Regras de segurança do Firestore usadas pelo sistema de admin do
+// Distrito RolePlay.
+//
+// IMPORTANTE: isso é o que garante de verdade que só
+// carlosmagno123b@gmail.com consegue banir contas/IPs, fechar a entrada
+// do APK e publicar atualizações. O botão "Painel Admin" no app só
+// aparece pra esse e-mail por conveniência visual — quem realmente
+// impede qualquer outra pessoa de escrever nessas coleções (mesmo
+// editando o APK e chamando as funções na unha) é este arquivo.
+//
+// Como aplicar: Firebase Console > Firestore Database > Regras, cole
+// este conteúdo e publique. (Ou: firebase deploy --only firestore:rules
+// se você usa o Firebase CLI.)
+// ---------------------------------------------------------------------
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == "carlosmagno123b@gmail.com"
+        && request.auth.token.email_verified == true;
+    }
+
+    function isSelf(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // users/{uid} — perfil de cada jogador.
+    // - O próprio jogador pode criar/atualizar seu doc (login, heartbeat),
+    //   mas NUNCA pode escrever os campos "banned" ou "banReason" nele
+    //   mesmo (só o admin altera esses dois campos).
+    // - O admin pode ler todo mundo (lista do painel) e escrever
+    //   qualquer coisa em qualquer conta (banir/desbanir).
+    // - Um jogador comum só lê o próprio doc.
+    match /users/{uid} {
+      allow read: if isAdmin() || isSelf(uid);
+
+      allow create: if isSelf(uid)
+        && !("banned" in request.resource.data)
+        && !("banReason" in request.resource.data);
+
+      allow update: if isAdmin()
+        || (
+          isSelf(uid)
+          && request.resource.data.banned == resource.data.banned
+          && (!("banReason" in request.resource.data) || request.resource.data.banReason == resource.data.banReason)
+        );
+
+      allow delete: if isAdmin();
+    }
+
+    // ip_bans/{ipDocId} — só o admin lê e escreve. O app só faz "get" de
+    // um doc específico pra checar se o IP do aparelho está banido, o
+    // que é permitido a qualquer usuário autenticado (senão o próprio
+    // check de ban não funcionaria pro jogador comum).
+    match /ip_bans/{ipDocId} {
+      allow get: if request.auth != null;
+      allow list: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // config/app_control — flag de "entrada fechada" e config/app_update
+    // — link/versão do APK publicado. Qualquer usuário autenticado pode
+    // ler (precisa pra saber se está fechado / se tem update), só o
+    // admin escreve.
+    match /config/{doc} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // Qualquer outra coleção: fechado por padrão.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

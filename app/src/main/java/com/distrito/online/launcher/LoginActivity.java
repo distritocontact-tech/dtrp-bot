@@ -13,7 +13,12 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.distrito.online.R;
+import com.distrito.online.launcher.admin.AccountDirectory;
 
 /**
  * Tela exibida somente no primeiro acesso do player, ou quando ele ainda
@@ -27,8 +32,16 @@ public class LoginActivity extends BaseLauncherActivity {
     private static final String TAG = "DTRP-GoogleSignIn";
     private static final int RC_SIGN_IN = 9001;
 
+    // Client ID "web" do google-services.json — necessário pra pedir o
+    // idToken que o FirebaseAuth usa pra autenticar de verdade (é isso
+    // que faz request.auth.token.email existir nas Firestore Security
+    // Rules e permitir o painel admin checar quem está logado).
+    private static final String WEB_CLIENT_ID =
+            "1011962422766-p14bn9rdrtbof6pup7q3r32qrf5khsvv.apps.googleusercontent.com";
+
     private GoogleSignInClient googleSignInClient;
     private LinkedAccountManager accountManager;
+    private FirebaseAuth firebaseAuth;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -37,6 +50,7 @@ public class LoginActivity extends BaseLauncherActivity {
         playEntryAnimationIfPending(findViewById(android.R.id.content));
 
         accountManager = new LinkedAccountManager(this);
+        firebaseAuth = FirebaseAuth.getInstance();
 
         // Segurança extra: se por algum motivo essa tela for aberta
         // com uma conta já vinculada, pula direto pra ConnectActivity.
@@ -47,6 +61,7 @@ public class LoginActivity extends BaseLauncherActivity {
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
+                .requestIdToken(WEB_CLIENT_ID)
                 .build();
         googleSignInClient = GoogleSignIn.getClient(this, gso);
 
@@ -91,7 +106,34 @@ public class LoginActivity extends BaseLauncherActivity {
     }
 
     private void onGoogleLoginSuccess(GoogleSignInAccount account) {
-        accountManager.linkAccount(account);
-        navigateWithFade(new Intent(this, ConnectActivity.class));
+        // Autentica no Firebase com o mesmo login do Google — sem isso o
+        // Firestore não sabe quem é o usuário e as Security Rules (que
+        // são a trava de verdade do painel admin e dos bans) não têm
+        // como funcionar.
+        AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
+        firebaseAuth.signInWithCredential(credential).addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
+                Log.e(TAG, "Falha ao autenticar no Firebase", task.getException());
+                // Sem FirebaseAuth não dá pra checar ban nem sincronizar a
+                // conta, mas não travamos o player por causa disso — ele
+                // ainda consegue jogar, só não aparece no painel admin.
+                accountManager.linkAccount(account);
+                navigateWithFade(new Intent(this, ConnectActivity.class));
+                return;
+            }
+
+            FirebaseUser user = firebaseAuth.getCurrentUser();
+            new AccountDirectory().syncAccountAndCheckAccess(user, (allowed, reason) -> runOnUiThread(() -> {
+                if (!allowed) {
+                    firebaseAuth.signOut();
+                    Toast.makeText(this,
+                            "Acesso bloqueado" + (reason != null ? ": " + reason : "."),
+                            Toast.LENGTH_LONG).show();
+                    return;
+                }
+                accountManager.linkAccount(account);
+                navigateWithFade(new Intent(this, ConnectActivity.class));
+            }));
+        });
     }
 }

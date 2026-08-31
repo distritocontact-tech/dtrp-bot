@@ -1,10 +1,12 @@
 package com.distrito.online.launcher;
 
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -44,9 +46,13 @@ public class InstallActivity extends BaseLauncherActivity {
     private static final String TAG = "InstallActivity";
 
     private static final String PART_00_URL =
-            "https://github.com/distritocontact-tech/Datadtrpmob/releases/download/untagged-b5d52a2150db72f2800a/distrito-data.part00.bin";
+            "https://github.com/distritocontact-tech/drtp/releases/download/1.0/distrito-data.part00.bin";
     private static final String PART_01_URL =
-            "https://github.com/distritocontact-tech/Datadtrpmob/releases/download/untagged-b5d52a2150db72f2800a/distrito-data.part01.bin";
+            "https://github.com/distritocontact-tech/drtp/releases/download/1.0/distrito-data.part01.bin";
+
+    private static final String DISCORD_URL = "https://discord.gg/CJ2Kc64pmp";
+    private static final int MAX_DOWNLOAD_ATTEMPTS = 3;
+    private static final long RETRY_DELAY_MS = 2_000;
 
     private static final String PREFS = "install_state";
     private static final String KEY_STATE = "state";
@@ -59,6 +65,8 @@ public class InstallActivity extends BaseLauncherActivity {
     private ProgressBar progressBar;
     private TextView txtCurrentFile;
     private TextView txtBytesProgress;
+    private View errorOverlay;
+    private TextView txtErrorMessage;
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private volatile boolean cancelled = false;
@@ -83,6 +91,17 @@ public class InstallActivity extends BaseLauncherActivity {
         txtCurrentFile = findViewById(R.id.txt_current_file);
         txtBytesProgress = findViewById(R.id.txt_bytes_progress);
         progressBar.setMax(10000);
+
+        errorOverlay = findViewById(R.id.error_overlay);
+        txtErrorMessage = findViewById(R.id.txt_error_message);
+        findViewById(R.id.btn_error_discord).setOnClickListener(v -> playTapFeedback(v, () -> {
+            try {
+                startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse(DISCORD_URL)));
+            } catch (Exception e) {
+                Log.e(TAG, "Não foi possível abrir o Discord", e);
+            }
+        }));
+        findViewById(R.id.btn_error_retry).setOnClickListener(v -> playTapFeedback(v, this::retryInstall));
 
         repairMode = getIntent().getBooleanExtra(EXTRA_REPAIR_MODE, false);
         integrityManager = new FileIntegrityManager(this, new File(getFilesDir(), INSTALL_FOLDER_NAME));
@@ -154,16 +173,39 @@ public class InstallActivity extends BaseLauncherActivity {
                 } else {
                     wipeEverything();
                 }
-                mainHandler.post(() -> {
-                    if (!isFinishing()) {
-                        // Instalação falhou: volta pra tela anterior pra o
-                        // player poder tentar de novo (o botão volta a
-                        // aparecer como "Instalação necessária").
-                        onBackPressed();
-                    }
-                });
+                if (!cancelled) {
+                    mainHandler.post(() -> showError(e));
+                }
             }
         }, "distrito-install-thread").start();
+    }
+
+    /**
+     * Mostra o overlay de erro (fundo escuro cobrindo a tela) com um botão
+     * pra abrir o Discord e outro pra tentar a instalação de novo. Chamado
+     * depois que todas as MAX_DOWNLOAD_ATTEMPTS tentativas de download (ou
+     * a extração) falharem.
+     */
+    private void showError(Exception cause) {
+        if (isFinishing() || errorOverlay == null) return;
+        String detail = cause != null && cause.getMessage() != null ? cause.getMessage() : "erro desconhecido";
+        txtErrorMessage.setText("Não foi possível baixar os arquivos do jogo após "
+                + MAX_DOWNLOAD_ATTEMPTS + " tentativas. Abra um ticket no Discord para receber ajuda.\n\n"
+                + "Detalhe técnico: " + detail);
+        errorOverlay.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Esconde o overlay de erro e reinicia a instalação do zero (mesmo
+     * caminho de uma instalação normal — wipeEverything já rodou quando o
+     * erro apareceu, então não há partes/arquivos parciais sobrando).
+     */
+    private void retryInstall() {
+        if (errorOverlay != null) errorOverlay.setVisibility(View.GONE);
+        progressBar.setProgress(0);
+        txtBytesProgress.setText("0 MB de 0 MB");
+        getSharedPreferences(PREFS, MODE_PRIVATE).edit().putString(KEY_STATE, STATE_IN_PROGRESS).apply();
+        startInstall();
     }
 
     private long remoteContentLength(String urlStr) {
@@ -183,9 +225,43 @@ public class InstallActivity extends BaseLauncherActivity {
         }
     }
 
+    /**
+     * Tenta baixar um arquivo até MAX_DOWNLOAD_ATTEMPTS vezes. Se todas as
+     * tentativas falharem, relança a última exceção pra quem chamou tratar
+     * (startInstall mostra a tela de erro nesse caso).
+     */
     private void downloadFile(String urlStr, File dest, String displayName,
                                long bytesAlreadyCountedFromOtherParts, long grandTotal) throws IOException {
-        mainHandler.post(() -> txtCurrentFile.setText("Baixando: " + displayName));
+        IOException lastError = null;
+        for (int attempt = 1; attempt <= MAX_DOWNLOAD_ATTEMPTS; attempt++) {
+            if (cancelled) throw new IOException("Download cancelado (activity destruída)");
+            try {
+                downloadFileOnce(urlStr, dest, displayName, bytesAlreadyCountedFromOtherParts, grandTotal, attempt);
+                return; // sucesso
+            } catch (IOException e) {
+                lastError = e;
+                Log.w(TAG, "Falha ao baixar " + displayName + " (tentativa " + attempt
+                        + "/" + MAX_DOWNLOAD_ATTEMPTS + ")", e);
+                if (attempt < MAX_DOWNLOAD_ATTEMPTS && !cancelled) {
+                    try {
+                        Thread.sleep(RETRY_DELAY_MS);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new IOException("Download interrompido", ie);
+                    }
+                }
+            }
+        }
+        throw lastError;
+    }
+
+    private void downloadFileOnce(String urlStr, File dest, String displayName,
+                                   long bytesAlreadyCountedFromOtherParts, long grandTotal,
+                                   int attempt) throws IOException {
+        String label = attempt > 1
+                ? "Baixando: " + displayName + " (tentativa " + attempt + "/" + MAX_DOWNLOAD_ATTEMPTS + ")"
+                : "Baixando: " + displayName;
+        mainHandler.post(() -> txtCurrentFile.setText(label));
 
         HttpURLConnection connection = (HttpURLConnection) new URL(urlStr).openConnection();
         connection.setInstanceFollowRedirects(true);

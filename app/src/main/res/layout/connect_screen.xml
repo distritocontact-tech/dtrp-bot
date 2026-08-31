@@ -52,6 +52,26 @@
             android:fontFamily="sans-serif-condensed" />
     </LinearLayout>
 
+    <!-- Painel Admin (top-right, só aparece pra conta admin) -->
+    <TextView
+        android:id="@+id/btn_admin_panel"
+        android:layout_width="wrap_content"
+        android:layout_height="56dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="24dp"
+        android:background="@drawable/bg_pill_white"
+        android:fontFamily="sans-serif-condensed"
+        android:gravity="center"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:text="Painel Admin"
+        android:textColor="#1C1C1E"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <!-- Bottom bar: socials (left) + server box + atualizar button (right) -->
     <LinearLayout
         android:id="@+id/bottom_bar"

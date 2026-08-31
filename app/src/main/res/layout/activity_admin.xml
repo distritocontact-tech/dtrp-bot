@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/launcher_bg_deep"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="20dp">
+
+        <TextView
+            android:id="@+id/btn_admin_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/montserrat_bold"
+            android:padding="6dp"
+            android:text="←"
+            android:textColor="@color/launcher_text_primary"
+            android:textSize="20sp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:fontFamily="@font/montserrat_black"
+            android:text="Painel Admin"
+            android:textColor="@color/launcher_text_primary"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="40dp">
+
+            <!-- Fechar entrada (só no APK) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/admin_card_bg"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/montserrat_bold"
+                    android:text="Entrada no servidor (APK)"
+                    android:textColor="@color/launcher_text_primary"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="@font/montserrat_medium"
+                    android:text="Quando fechada, só quem está no app Android é bloqueado antes de entrar (PC e o servidor em si não são afetados)."
+                    android:textColor="@color/launcher_text_muted"
+                    android:textSize="11sp" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/switch_entry_closed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Fechar entrada"
+                    android:textColor="@color/launcher_text_primary" />
+
+                <EditText
+                    android:id="@+id/edit_closed_message"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/admin_card_bg"
+                    android:hint="Mensagem exibida pro player (opcional)"
+                    android:padding="10dp"
+                    android:textColor="@color/launcher_text_primary"
+                    android:textColorHint="@color/launcher_text_muted"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/btn_save_entry_state"
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:layout_gravity="end"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/admin_btn_primary"
+                    android:fontFamily="@font/montserrat_bold"
+                    android:gravity="center"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:text="Salvar"
+                    android:textColor="@color/black"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <!-- Publicar atualização -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/admin_card_bg"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/montserrat_bold"
+                    android:text="Atualização do APK"
+                    android:textColor="@color/launcher_text_primary"
+                    android:textSize="14sp" />
+
+                <EditText
+                    android:id="@+id/edit_github_token"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/admin_card_bg"
+                    android:hint="Token do GitHub (fica só neste aparelho)"
+                    android:inputType="textPassword"
+                    android:padding="10dp"
+                    android:textColor="@color/launcher_text_primary"
+                    android:textColorHint="@color/launcher_text_muted"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/btn_fetch_github_release"
+                    android:layout_width="wrap_content"
+                    android:layout_height="34dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/admin_btn_danger"
+                    android:fontFamily="@font/montserrat_bold"
+                    android:gravity="center"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:text="Buscar última release do GitHub"
+                    android:textColor="@color/launcher_accent_gold_bright"
+                    android:textSize="10sp" />
+
+                <EditText
+                    android:id="@+id/edit_apk_url"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/admin_card_bg"
+                    android:hint="Link do APK novo"
+                    android:padding="10dp"
+                    android:textColor="@color/launcher_text_primary"
+                    android:textColorHint="@color/launcher_text_muted"
+                    android:textSize="12sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
+
+                    <EditText
+                        android:id="@+id/edit_version_code"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/admin_card_bg"
+                        android:hint="versionCode"
+                        android:inputType="number"
+                        android:padding="10dp"
+                        android:textColor="@color/launcher_text_primary"
+                        android:textColorHint="@color/launcher_text_muted"
+                        android:textSize="12sp" />
+
+                    <EditText
+                        android:id="@+id/edit_version_name"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/admin_card_bg"
+                        android:hint="versionName"
+                        android:padding="10dp"
+                        android:textColor="@color/launcher_text_primary"
+                        android:textColorHint="@color/launcher_text_muted"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/btn_publish_update"
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:layout_gravity="end"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/admin_btn_primary"
+                    android:fontFamily="@font/montserrat_bold"
+                    android:gravity="center"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:text="Publicar pros players"
+                    android:textColor="@color/black"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <!-- Contas -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:fontFamily="@font/montserrat_bold"
+                android:text="Contas registradas"
+                android:textColor="@color/launcher_text_primary"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/txt_accounts_summary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/montserrat_medium"
+                android:text="Carregando..."
+                android:textColor="@color/launcher_text_muted"
+                android:textSize="11sp" />
+
+            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/swipe_refresh"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_accounts"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false" />
+            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
