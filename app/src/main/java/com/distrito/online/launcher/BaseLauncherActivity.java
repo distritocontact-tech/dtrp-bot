@@ -41,11 +41,11 @@ public abstract class BaseLauncherActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        // Transição de volta (slide no sentido oposto ao de entrada), pra
-        // cobrir também a navegação pelo botão/gesto de voltar do sistema
-        // — que, sem isso, usa a transição padrão (sem animação) do Android.
+        // Aqui a transição PRECISA ser registrada antes do finish() que
+        // roda dentro de super.onBackPressed() — mesmo motivo do
+        // navigateWithFade acima.
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+        super.onBackPressed();
     }
 
     /**
@@ -80,19 +80,23 @@ public abstract class BaseLauncherActivity extends AppCompatActivity {
      */
     protected void navigateWithFade(Intent intent) {
         startActivity(intent);
-        finish();
+        // overridePendingTransition PRECISA vir logo depois do startActivity,
+        // antes do finish() — nessa ordem, em alguns aparelhos (ex:
+        // Samsung/One UI) o sistema ignora a transição customizada e usa o
+        // corte padrão sem animação nenhuma.
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+        finish();
     }
 
     /**
      * Igual ao navigateWithFade, mas com uma transição mais leve/sutil
-     * (fade + leve zoom, sem slide) — usada especificamente ao entrar na
-     * tela de "Connect with Google".
+     * (fade + leve zoom, sem slide) — usada especificamente ao sair da
+     * tela de loading para a tela de login.
      */
     protected void navigateWithLightFade(Intent intent) {
         startActivity(intent);
-        finish();
         overridePendingTransition(R.anim.light_fade_in, R.anim.light_fade_out);
+        finish();
     }
 
     /**

@@ -57,7 +57,6 @@ public class ConnectActivity extends BaseLauncherActivity {
         findViewById(R.id.btn_discord).setOnClickListener(v -> playTapFeedback(v, () -> openUrl(DISCORD_URL)));
         findViewById(R.id.btn_tiktok).setOnClickListener(v -> playTapFeedback(v, () -> openUrl(TIKTOK_URL)));
         findViewById(R.id.btn_youtube).setOnClickListener(v -> playTapFeedback(v, () -> openUrl(YOUTUBE_URL)));
-        findViewById(R.id.panel_server).setOnClickListener(v -> playTapFeedback(v, this::refreshServerStatus));
 
         refreshServerStatus();
     }

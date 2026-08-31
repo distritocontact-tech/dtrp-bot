@@ -108,7 +108,8 @@
             android:layout_height="1dp"
             android:layout_weight="1" />
 
-        <!-- Server info box: name (top) + real player count (bottom) -->
+        <!-- Server info box: name (top) + real player count (bottom).
+             Não é clicável — é só um indicador de status, sem ação. -->
         <LinearLayout
             android:id="@+id/panel_server"
             android:layout_width="wrap_content"
@@ -119,8 +120,8 @@
             android:orientation="horizontal"
             android:paddingStart="20dp"
             android:paddingEnd="16dp"
-            android:clickable="true"
-            android:focusable="true">
+            android:clickable="false"
+            android:focusable="false">
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -163,13 +164,6 @@
                         android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
-
-            <ImageView
-                android:layout_width="34dp"
-                android:layout_height="34dp"
-                android:layout_marginStart="16dp"
-                android:src="@drawable/ic_tap_hand"
-                app:tint="#2E9BF6" />
         </LinearLayout>
 
         <!-- "Instalação necessária" + Baixar button, stacked so the label
@@ -182,13 +176,15 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:orientation="vertical"
-            android:gravity="end">
+            android:gravity="center_horizontal">
 
             <TextView
                 android:id="@+id/txt_install_required"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
                 android:layout_marginBottom="8dp"
+                android:gravity="center"
                 android:text="Instalação necessária"
                 android:textColor="#FFC94D"
                 android:textSize="13sp"
