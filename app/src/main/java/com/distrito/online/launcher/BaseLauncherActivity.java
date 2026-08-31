@@ -43,8 +43,8 @@ public abstract class BaseLauncherActivity extends AppCompatActivity {
     public void onBackPressed() {
         // Aqui a transição PRECISA ser registrada antes do finish() que
         // roda dentro de super.onBackPressed() — mesmo motivo do
-        // navigateWithFade acima.
-        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+        // navigateWithFade acima. Mesmo crossfade das outras telas.
+        overridePendingTransition(R.anim.light_fade_in, R.anim.light_fade_out);
         super.onBackPressed();
     }
 
@@ -79,13 +79,15 @@ public abstract class BaseLauncherActivity extends AppCompatActivity {
      * layout raiz e causava a sobreposição/"fantasma" das telas.
      */
     protected void navigateWithFade(Intent intent) {
+        intent.putExtra(EXTRA_ENTRY_ANIM, ENTRY_ANIM_LIGHT_FADE);
         startActivity(intent);
         // overridePendingTransition fica como fallback: em aparelhos com as
         // escalas de animação do sistema ligadas, ele ainda roda. Mas quem
         // realmente garante a animação, independente dessas opções do
-        // desenvolvedor, é o slideInFromRight() chamado no onCreate() da
-        // tela de destino (ver playEntryAnimationIfPending()).
-        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+        // desenvolvedor, é o lightFadeIn() chamado no onCreate() da tela de
+        // destino (ver playEntryAnimationIfPending()) — mesmo crossfade
+        // usado em todas as telas agora, pra manter consistência.
+        overridePendingTransition(R.anim.light_fade_in, R.anim.light_fade_out);
         finish();
     }
 
@@ -114,7 +116,8 @@ public abstract class BaseLauncherActivity extends AppCompatActivity {
     protected void playEntryAnimationIfPending(View rootView) {
         int animType = getIntent().getIntExtra(EXTRA_ENTRY_ANIM, ENTRY_ANIM_SLIDE);
         if (animType == ENTRY_ANIM_LIGHT_FADE) {
-            ManualScreenAnimator.lightFadeIn(rootView, 260);
+            // ~400ms, igual ao crossfade do vídeo de referência.
+            ManualScreenAnimator.lightFadeIn(rootView, 400);
         } else {
             ManualScreenAnimator.slideInFromRight(rootView, 260);
         }

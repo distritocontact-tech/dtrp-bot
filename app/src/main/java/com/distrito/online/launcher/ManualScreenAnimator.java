@@ -37,14 +37,14 @@ final class ManualScreenAnimator {
         }, null);
     }
 
-    /** Fade + leve "zoom in" (usado saindo da tela de loading pro login). */
+    /**
+     * Crossfade puro (sem slide, sem zoom) — a tela nova surge por cima da
+     * tela anterior, que fica visível por baixo enquanto o alpha sobe.
+     * É o efeito usado ao sair da tela de loading pra tela de login/conexão.
+     */
     static void lightFadeIn(View target, long durationMs) {
-        run(target, durationMs, new DecelerateInterpolator(1.5f), progress -> {
-            target.setAlpha(progress);
-            float scale = 0.96f + 0.04f * progress;
-            target.setScaleX(scale);
-            target.setScaleY(scale);
-        }, null);
+        run(target, durationMs, new DecelerateInterpolator(1.5f),
+                progress -> target.setAlpha(progress), null);
     }
 
     private interface Step {
