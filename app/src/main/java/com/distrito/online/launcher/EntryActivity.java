@@ -30,6 +30,7 @@ public class EntryActivity extends BaseLauncherActivity {
 
     private LinkedAccountManager accountManager;
     private ObjectAnimator progressAnimator;
+    private boolean loadingFinished = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -50,11 +51,20 @@ public class EntryActivity extends BaseLauncherActivity {
 
             @Override
             public void onAnimationEnd(@NonNull Animator animation) {
-                goToNextScreen();
+                // cancel() também dispara onAnimationEnd (comportamento padrão do
+                // Animator do Android) — só queremos navegar quando a barra
+                // realmente terminou os 10s, não quando foi cancelada (ex.: a
+                // Activity sendo destruída antes da hora).
+                if (!loadingFinished) {
+                    loadingFinished = true;
+                    goToNextScreen();
+                }
             }
 
             @Override
-            public void onAnimationCancel(@NonNull Animator animation) {}
+            public void onAnimationCancel(@NonNull Animator animation) {
+                loadingFinished = true;
+            }
 
             @Override
             public void onAnimationRepeat(@NonNull Animator animation) {}

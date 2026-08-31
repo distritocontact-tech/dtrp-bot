@@ -50,6 +50,7 @@
         <activity
             android:name=".launcher.EntryActivity"
             android:screenOrientation="landscape"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|uiMode|keyboardHidden"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"
             android:exported="true">
             <intent-filter>
@@ -61,12 +62,14 @@
         <activity
             android:name=".launcher.LoginActivity"
             android:screenOrientation="landscape"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|uiMode|keyboardHidden"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"
             android:exported="false" />
 
         <activity
             android:name=".launcher.ConnectActivity"
             android:screenOrientation="landscape"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|uiMode|keyboardHidden"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"
             android:exported="false" />
 
