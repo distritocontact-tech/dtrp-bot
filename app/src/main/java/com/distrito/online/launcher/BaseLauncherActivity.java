@@ -80,10 +80,11 @@ public abstract class BaseLauncherActivity extends AppCompatActivity {
      */
     protected void navigateWithFade(Intent intent) {
         startActivity(intent);
-        // overridePendingTransition PRECISA vir logo depois do startActivity,
-        // antes do finish() — nessa ordem, em alguns aparelhos (ex:
-        // Samsung/One UI) o sistema ignora a transição customizada e usa o
-        // corte padrão sem animação nenhuma.
+        // overridePendingTransition fica como fallback: em aparelhos com as
+        // escalas de animação do sistema ligadas, ele ainda roda. Mas quem
+        // realmente garante a animação, independente dessas opções do
+        // desenvolvedor, é o slideInFromRight() chamado no onCreate() da
+        // tela de destino (ver playEntryAnimationIfPending()).
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         finish();
     }
@@ -94,9 +95,29 @@ public abstract class BaseLauncherActivity extends AppCompatActivity {
      * tela de loading para a tela de login.
      */
     protected void navigateWithLightFade(Intent intent) {
+        intent.putExtra(EXTRA_ENTRY_ANIM, ENTRY_ANIM_LIGHT_FADE);
         startActivity(intent);
         overridePendingTransition(R.anim.light_fade_in, R.anim.light_fade_out);
         finish();
+    }
+
+    private static final String EXTRA_ENTRY_ANIM = "entry_anim";
+    private static final int ENTRY_ANIM_SLIDE = 0;
+    private static final int ENTRY_ANIM_LIGHT_FADE = 1;
+
+    /**
+     * Roda a animação de entrada "na mão" (independente das opções de
+     * desenvolvedor de escala de animação). Chame isso no onCreate() de
+     * cada Activity, depois de setContentView(), passando a view raiz do
+     * layout.
+     */
+    protected void playEntryAnimationIfPending(View rootView) {
+        int animType = getIntent().getIntExtra(EXTRA_ENTRY_ANIM, ENTRY_ANIM_SLIDE);
+        if (animType == ENTRY_ANIM_LIGHT_FADE) {
+            ManualScreenAnimator.lightFadeIn(rootView, 260);
+        } else {
+            ManualScreenAnimator.slideInFromRight(rootView, 260);
+        }
     }
 
     /**

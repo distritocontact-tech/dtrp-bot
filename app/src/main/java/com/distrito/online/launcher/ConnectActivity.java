@@ -37,6 +37,7 @@ public class ConnectActivity extends BaseLauncherActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.connect_screen);
+        playEntryAnimationIfPending(findViewById(android.R.id.content));
 
         accountManager = new LinkedAccountManager(this);
 

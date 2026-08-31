@@ -34,6 +34,7 @@ public class LoginActivity extends BaseLauncherActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_screen);
+        playEntryAnimationIfPending(findViewById(android.R.id.content));
 
         accountManager = new LinkedAccountManager(this);
 

@@ -65,6 +65,7 @@ public class InstallActivity extends BaseLauncherActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.install_screen);
+        playEntryAnimationIfPending(findViewById(android.R.id.content));
 
         progressBar = findViewById(R.id.progress_bar);
         txtCurrentFile = findViewById(R.id.txt_current_file);
